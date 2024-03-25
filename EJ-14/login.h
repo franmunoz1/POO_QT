@@ -18,6 +18,7 @@ public:
 private slots:
     void verificarLogin();
     void abrirFormulario();
+    void mostrarMensajeInicioSesionExitoso();
 
 private:
     QLabel *lbl_usuario;

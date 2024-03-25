@@ -30,13 +30,17 @@ void Login::verificarLogin() {
     QString usuario_ingresado = txt_usuario->text();
     QString contrasena_ingresada = txt_contrasena->text();
     if (usuario_ingresado == "admin" && contrasena_ingresada == "1111") {
-        QMessageBox::information(this, "Ingreso exitoso", "Inicio de sesión exitoso.");
+        mostrarMensajeInicioSesionExitoso();
         abrirFormulario();
     } else {
         QMessageBox::warning(this, "Error", "Usuario y/o contraseña incorrectos");
         txt_usuario->clear();
         txt_contrasena->clear();
     }
+}
+
+void Login::mostrarMensajeInicioSesionExitoso() {
+    QMessageBox::information(this, "Éxito", "Inicio de sesión exitoso");
 }
 
 void Login::abrirFormulario() {
