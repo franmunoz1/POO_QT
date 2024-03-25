@@ -11,12 +11,12 @@
 *.orig
 *.rej
 *.so
-.so.
+*.so.*
 *_pch.h.cpp
 *_resource.rc
 *.qm
 .#*
-.#
+*.*#
 core
 !core/
 tags
@@ -36,7 +36,7 @@ Thumbs.db
 /.qmake.stash
 
 # qtcreator generated files
-.pro.user
+*.pro.user*
 CMakeLists.txt.user*
 
 # xemacs temporary files
@@ -53,12 +53,12 @@ CMakeLists.txt.user*
 *.sln
 *.suo
 *.vcproj
-vcproj..*.user
+*vcproj.*.*.user
 *.ncb
 *.sdf
 *.opensdf
 *.vcxproj
-vcxproj.
+*vcxproj.*
 
 # MinGW generated files
 *.Debug
@@ -72,7 +72,3 @@ vcxproj.
 *.dll
 *.exe
 
-/build
-build-*-Qt_6_6_2_for_macOS-Debug/
-build-*-Qt_6_6_2_for_macOS-Release/
-build-*/
