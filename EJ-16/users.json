@@ -1,0 +1,14 @@
+[
+    {
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "usuario": "juanperez",
+        "clave": "clave123"
+    },
+    {
+        "nombre": "María",
+        "apellido": "García",
+        "usuario": "mariag",
+        "clave": "contraseña"
+    }
+]
