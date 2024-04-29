@@ -1,8 +1,9 @@
-QT += widgets
-QT += network
+QT += core gui widgets network
 
-SOURCES += main.cpp \
-    login.cpp
+SOURCES += \
+    login.cpp \
+    main.cpp \
+    main.cpp
 
 HEADERS += \
     login.h

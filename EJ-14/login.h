@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QPixmap>
 
 class Formulario;
 
@@ -22,18 +23,19 @@ private slots:
     void abrirFormulario();
     void mostrarMensajeInicioSesionExitoso();
     void obtenerTemperaturaCordoba();
-    void toggleMostrarTemperatura(); // Nuevo slot para mostrar u ocultar la temperatura
+    void toggleMostrarTemperatura();
 
 private:
     QLabel *lbl_usuario;
     QLabel *lbl_contrasena;
     QLabel *lbl_temperatura;
+    QLabel *lbl_fondo;
 
     QLineEdit *txt_usuario;
     QLineEdit *txt_contrasena;
 
     QPushButton *btn_login;
-    QPushButton *btn_mostrar_ocultar_temperatura; // Nuevo botón para mostrar u ocultar la temperatura
+    QPushButton *btn_mostrar_ocultar_temperatura;
 
     Formulario *formulario;
 };

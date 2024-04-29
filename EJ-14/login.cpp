@@ -9,7 +9,19 @@ Login::Login(QWidget *parent) : QWidget(parent) {
     setWindowTitle("Login");
     setGeometry(200, 200, 300, 150);
 
-    auto layout = new QGridLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    setLayout(mainLayout);
+
+    QWidget *widget = new QWidget(this);
+    mainLayout->addWidget(widget);
+
+    QPixmap background(":/images/background.jpg");
+    QPalette palette;
+    palette.setBrush(widget->backgroundRole(), QBrush(background.scaled(size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
+    widget->setPalette(palette);
+
+    auto layout = new QGridLayout(widget);
+    widget->setLayout(layout);
 
     lbl_usuario = new QLabel("Usuario:");
     lbl_contrasena = new QLabel("Contraseña:");
@@ -20,7 +32,7 @@ Login::Login(QWidget *parent) : QWidget(parent) {
     txt_contrasena->setEchoMode(QLineEdit::Password);
 
     btn_login = new QPushButton("Ingresar");
-    btn_mostrar_ocultar_temperatura = new QPushButton("Mostrar/Ocultar Temperatura"); // Nuevo botón
+    btn_mostrar_ocultar_temperatura = new QPushButton("Mostrar/Ocultar Temperatura");
 
     layout->addWidget(lbl_usuario, 0, 0);
     layout->addWidget(txt_usuario, 0, 1);
@@ -28,12 +40,10 @@ Login::Login(QWidget *parent) : QWidget(parent) {
     layout->addWidget(txt_contrasena, 1, 1);
     layout->addWidget(lbl_temperatura, 2, 0, 1, 2);
     layout->addWidget(btn_login, 3, 0, 1, 2);
-    layout->addWidget(btn_mostrar_ocultar_temperatura, 4, 0, 1, 2); // Agrega el botón al diseño
-
-    setLayout(layout);
+    layout->addWidget(btn_mostrar_ocultar_temperatura, 4, 0, 1, 2);
 
     connect(btn_login, &QPushButton::clicked, this, &Login::verificarLogin);
-    connect(btn_mostrar_ocultar_temperatura, &QPushButton::clicked, this, &Login::toggleMostrarTemperatura); // Conexión de señales
+    connect(btn_mostrar_ocultar_temperatura, &QPushButton::clicked, this, &Login::toggleMostrarTemperatura);
 
     obtenerTemperaturaCordoba();
 }
