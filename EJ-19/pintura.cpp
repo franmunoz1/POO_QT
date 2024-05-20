@@ -132,7 +132,7 @@ void Pintura::limpiarLienzo()
 void Pintura::actualizarLabelTamanoPincel()
 {
     int porcentaje = (tamanoPincel * 100) / 50; // Se asume que el tamaño máximo del pincel es 50
-    QString texto = "Tamaño del pincel: <b>" + QString::number(porcentaje) + "%</b>";
+    QString texto = "Tamaño del pincel: <b>" + QString::number(porcentaje) + "</b>";
     labelTamanoPincel->setText(texto);
     labelTamanoPincel->setStyleSheet("QLabel { color: black; font-size: 16px; }");
 
