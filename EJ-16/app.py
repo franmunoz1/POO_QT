@@ -1,28 +1,33 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError
-import json
 
 app = FastAPI()
 
-# Conexión a la base de datos MongoDB
-client = MongoClient("mongodb://localhost:27017/")
-db = client["usuariosdb"]
-collection = db["usuarios"]
+# Conectar a MongoDB
+client = MongoClient('localhost', 27017)
+db = client['POO']
+collection = db['Usuarios']
 
-# Registrar usuarios en MongoDB desde el archivo JSON
-with open("users.json", "r") as file:
-    usuarios = json.load(file)
-    try:
-        collection.insert_many(usuarios)
-    except DuplicateKeyError:
-        pass  # Ignorar si los usuarios ya existen en la base de datos
+# Modelo de datos para la solicitud de validación
+class Usuario(BaseModel):
+    usuario: str
+    clave: str
 
-
-@app.get("/validar_usuario")
-async def validar_usuario(usuario: str, clave: str):
-    user = collection.find_one({"usuario": usuario, "clave": clave})
+@app.post("/validar_usuario")
+async def validar_usuario(usuario: Usuario):
+    # Añadir impresión de depuración
+    print(f"Buscando usuario: {usuario.usuario} con clave: {usuario.clave}")
+    
+    user = collection.find_one({"usuario": usuario.usuario, "clave": usuario.clave})
+    
+    # Añadir impresión de depuración
+    print(f"Resultado de la consulta: {user}")
+    
     if user:
-        return {"mensaje": "Usuario válido"}
+        nombre_completo = f"{user['nombre']} {user['apellido']}::Ponce"
+        return {"mensaje": nombre_completo}
     else:
-        raise HTTPException(status_code=401, detail="Usuario no válido")
+        raise HTTPException(status_code=401, detail="denegado")
+
+# Ejecutar el servidor con: uvicorn nombre_archivo:app --reload
