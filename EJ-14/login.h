@@ -1,4 +1,3 @@
-// login.h
 #ifndef LOGIN_H
 #define LOGIN_H
 
@@ -12,13 +11,19 @@
 #include <QNetworkReply>
 #include <QPainter>
 #include <QTimer>
+#include <QCryptographicHash>
+#include <QStringList>
 
 class Formulario;
+class AdminDB;
 
 class Login : public QWidget {
     Q_OBJECT
 public:
     Login(QWidget *parent = nullptr);
+
+signals:
+    void signal_usuarioValidado(QString usuario);
 
 private slots:
     void verificarLogin();
@@ -44,6 +49,7 @@ private:
     QPushButton *btn_mostrar_ocultar_temperatura;
 
     Formulario *formulario;
+    AdminDB *adminDB;
     int intentosFallidos;
     QTimer *timerBloqueo;
 };

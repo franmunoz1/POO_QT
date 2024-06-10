@@ -1,12 +1,14 @@
 #include "login.h"
+#include "admindb.h"  // Incluir la nueva clase AdminDB
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMessageBox>
 #include <QPainter>
+#include <QCryptographicHash>
 
-Login::Login(QWidget *parent) : QWidget(parent) {
+Login::Login(QWidget *parent) : QWidget(parent), intentosFallidos(0) {
     setWindowTitle("Login");
     setGeometry(200, 200, 300, 150);
 
@@ -38,17 +40,17 @@ Login::Login(QWidget *parent) : QWidget(parent) {
     layout->addWidget(btn_login, 3, 0, 1, 2);
     layout->addWidget(btn_mostrar_ocultar_temperatura, 4, 0, 1, 2);
 
-    QObject::connect(txt_contrasena, SIGNAL(returnPressed()), this, SLOT(verificarLogin()));
-
-    QObject::connect(btn_login, SIGNAL(clicked()), this, SLOT(verificarLogin()));
-    QObject::connect(btn_mostrar_ocultar_temperatura, SIGNAL(clicked()), this, SLOT(toggleMostrarTemperatura()));
+    connect(txt_contrasena, &QLineEdit::returnPressed, this, &Login::verificarLogin);
+    connect(btn_login, &QPushButton::clicked, this, &Login::verificarLogin);
+    connect(btn_mostrar_ocultar_temperatura, &QPushButton::clicked, this, &Login::toggleMostrarTemperatura);
 
     obtenerTemperaturaCordoba();
 
-    intentosFallidos = 0;
     timerBloqueo = new QTimer(this);
     connect(timerBloqueo, &QTimer::timeout, this, &Login::desbloquearUsuario);
     timerBloqueo->setSingleShot(true);
+
+    adminDB = new AdminDB(this);
 }
 
 void Login::paintEvent(QPaintEvent *event) {
@@ -57,15 +59,17 @@ void Login::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    // Dibujar fondo
     painter.fillRect(rect(), QColor(173, 216, 230)); // Color azul claro
 }
 
 void Login::verificarLogin() {
     QString usuario_ingresado = txt_usuario->text();
     QString contrasena_ingresada = txt_contrasena->text();
-    if (usuario_ingresado == "admin" && contrasena_ingresada == "1111") {
+
+    QStringList datosPersonales = adminDB->validarUsuario("usuarios", usuario_ingresado, contrasena_ingresada);
+    if (!datosPersonales.isEmpty()) {
         mostrarMensajeInicioSesionExitoso();
+        emit signal_usuarioValidado(usuario_ingresado);
         abrirFormulario();
     } else {
         intentosFallidos++;
@@ -95,7 +99,7 @@ void Login::abrirFormulario() {
 
 void Login::obtenerTemperaturaCordoba() {
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QObject::connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(handleTemperaturaCordoba(QNetworkReply*)));
+    connect(manager, &QNetworkAccessManager::finished, this, &Login::handleTemperaturaCordoba);
 
     QString url = "http://api.openweathermap.org/data/2.5/weather?q=Cordoba&appid=824b4c2b2e5705ce2b026d6d39dd184b&units=metric";
     manager->get(QNetworkRequest(QUrl(url)));
@@ -163,7 +167,7 @@ Formulario::Formulario(QWidget *parent) : QWidget(parent) {
 
     setLayout(layout);
 
-    QObject::connect(btn_limpiar, SIGNAL(clicked()), this, SLOT(limpiarCampos()));
+    connect(btn_limpiar, &QPushButton::clicked, this, &Formulario::limpiarCampos);
 }
 
 void Formulario::limpiarCampos() {
@@ -171,4 +175,3 @@ void Formulario::limpiarCampos() {
     txt_nombre->clear();
     txt_apellido->clear();
 }
-
