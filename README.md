@@ -171,3 +171,10 @@
   - Cuando un usuario válido ingresa correctamente, se mostrará otra ventana que visualizará todos los usuarios cargados en la base.
   - Para la visualización de los usuarios se puede usar `QTreeWidget`. Agregar la funcionalidad para que en esta misma ventana se puedan editar los campos como si fuera una planilla tipo Excel.
   - Seguir las recomendaciones comentadas durante el dictado de clases para construir las clases.
+
+## Carpeta Conexion Base de Datos
+ - En esta carpeta, se encuentra una conexion basica a la base de datos, la cual fue desarrollada para practica.
+
+## Carpeta Ejercicios Login
+- En esta carpeta, se encuentran desarrollados varios login diferentes, que fueron realizados con el objetivo de practicar para el parcial.
+
