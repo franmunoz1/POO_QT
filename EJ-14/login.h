@@ -1,3 +1,4 @@
+// login.h
 #ifndef LOGIN_H
 #define LOGIN_H
 
@@ -9,7 +10,8 @@
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QPixmap>
+#include <QPainter>
+#include <QTimer>
 
 class Formulario;
 
@@ -24,12 +26,16 @@ private slots:
     void mostrarMensajeInicioSesionExitoso();
     void obtenerTemperaturaCordoba();
     void toggleMostrarTemperatura();
+    void handleTemperaturaCordoba(QNetworkReply *reply);
+    void desbloquearUsuario();
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     QLabel *lbl_usuario;
     QLabel *lbl_contrasena;
     QLabel *lbl_temperatura;
-    QLabel *lbl_fondo;
 
     QLineEdit *txt_usuario;
     QLineEdit *txt_contrasena;
@@ -38,6 +44,8 @@ private:
     QPushButton *btn_mostrar_ocultar_temperatura;
 
     Formulario *formulario;
+    int intentosFallidos;
+    QTimer *timerBloqueo;
 };
 
 class Formulario : public QWidget {

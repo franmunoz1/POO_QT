@@ -1,21 +1,25 @@
 #include "ventana.h"
 #include "ui_ventana.h"
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QFileDialog>
-#include <QFile>
-#include <QTextStream>
-#include <QPainter>
 #include <QRegularExpression>
+#include <QDebug>
+#include <QNetworkReply>
+#include <QUrl>
+#include <QFile>
+#include <QDir>
+#include <QFileDialog>
+#include <QPainter>
 
 Ventana::Ventana(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Ventana)
+    ui(new Ui::Ventana),
+    downloadDirectory(QDir::homePath())
 {
     ui->setupUi(this);
-    connect(ui->btnDescargar, &QPushButton::clicked, this, &Ventana::on_btnDescargar_clicked);
-    connect(ui->btnCargarImagen, &QPushButton::clicked, this, &Ventana::on_btnCargarImagen_clicked);
+
+    connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    connect(ui->pbUrl, SIGNAL(clicked()), this, SLOT(slot_pbUrl_clicked()));
+    connect(ui->pbSelectDirectory, SIGNAL(clicked()), this, SLOT(slot_selectDirectory_clicked()));
+    connect(ui->pbImage, SIGNAL(clicked()), this, SLOT(slot_selectImage_clicked()));
 }
 
 Ventana::~Ventana()
@@ -23,65 +27,104 @@ Ventana::~Ventana()
     delete ui;
 }
 
-void Ventana::on_btnDescargar_clicked()
+void Ventana::replyFinished(QNetworkReply *reply)
 {
-    QString urlStr = ui->leUrl->text();
-    QUrl url(urlStr);
+    qDebug() << reply;
+    if (reply->error()) {
+        ui->leText->setPlainText(reply->errorString());
+        return;
+    }
+    QString HTML = reply->readAll();
+    ui->leText->setPlainText(HTML);
 
-    QNetworkAccessManager manager;
-    QNetworkReply *reply = manager.get(QNetworkRequest(url));
-    QEventLoop loop;
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-
-    QString html = reply->readAll();
-    ui->teHtml->setPlainText(html);
-
-    QRegularExpression re("<img[^>]+src=\"([^\"]+)\"|<link[^>]+href=\"([^\"]+)\"|<script[^>]+src=\"([^\"]+)\"");
-    QRegularExpressionMatchIterator it = re.globalMatch(html);
-    QStringList urls;
-    while (it.hasNext()) {
-        QRegularExpressionMatch match = it.next();
-        if (match.captured(1).isEmpty()) {
-            urls << match.captured(2) << match.captured(3);
-        } else {
-            urls << match.captured(1);
-        }
+    QString htmlFileName = downloadDirectory + "/index.html";
+    QFile htmlFile(htmlFileName);
+    if (htmlFile.open(QIODevice::WriteOnly)) {
+        htmlFile.write(HTML.toUtf8());
+        htmlFile.close();
+        qDebug() << "Saved HTML to" << htmlFileName;
+    } else {
+        qDebug() << "Failed to save HTML to" << htmlFileName;
     }
 
-    QString saveDir = QFileDialog::getExistingDirectory(this, tr("Seleccionar Directorio"), "");
-    if (saveDir.isEmpty()) return;
+    QUrl baseUrl = reply->url();
 
-    foreach (const QString &urlPath, urls) {
-        if (urlPath.isEmpty()) continue;
-        QUrl resourceUrl = url.resolved(QUrl(urlPath));
-        QNetworkReply *resourceReply = manager.get(QNetworkRequest(resourceUrl));
-        connect(resourceReply, &QNetworkReply::finished, [&]() {
-            QString filePath = saveDir + "/" + resourceUrl.fileName();
-            QFile file(filePath);
-            if (file.open(QIODevice::WriteOnly)) {
-                file.write(resourceReply->readAll());
-                file.close();
-            }
-            resourceReply->deleteLater();
-        });
+    QRegularExpression urlRegex(R"((https?://[^\s'"]+\.(?:js|css))|(?:href|src)=['"]([^'"]+\.(?:js|css))['"])");
+    QRegularExpressionMatchIterator i = urlRegex.globalMatch(HTML);
+
+    while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        QString url = match.captured(1);
+        if (url.isEmpty()) {
+            url = match.captured(2);
+        }
+        QUrl fullUrl = baseUrl.resolved(url);
+        if (fullUrl.isValid() && (fullUrl.scheme() == "http" || fullUrl.scheme() == "https")) {
+            qDebug() << "Found URL:" << fullUrl.toString();
+            downloadFile(fullUrl.toString());
+        } else {
+            qDebug() << "Invalid URL:" << fullUrl.toString();
+        }
     }
 }
 
-void Ventana::on_btnCargarImagen_clicked()
-{
-    QString filePath = QFileDialog::getOpenFileName(this, tr("Seleccionar Imagen"), "", tr("Images (*.png *.xpm *.jpg *.jpeg)"));
-    if (!filePath.isEmpty()) {
-        image.load(filePath);
-        update(); // Trigger paintEvent to redraw the image
+void Ventana::slot_pbUrl_clicked() {
+    QNetworkRequest request(QUrl(ui->leUrl->text()));
+    manager.get(request);
+}
+
+void Ventana::slot_selectDirectory_clicked() {
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Download Directory"),
+                                                    QDir::homePath(),
+                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (!dir.isEmpty()) {
+        downloadDirectory = dir;
+        qDebug() << "Download directory set to:" << downloadDirectory;
     }
+}
+
+void Ventana::slot_selectImage_clicked() {
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Select Image"),
+                                                    QDir::homePath(),
+                                                    tr("Images (*.png *.jpg *.jpeg *.bmp *.gif)"));
+    if (!fileName.isEmpty()) {
+        image.load(fileName);
+        update();
+    }
+}
+
+void Ventana::downloadFile(const QString &urlString)
+{
+    QUrl url(urlString);
+    QNetworkRequest request(url);
+    QNetworkReply *reply = manager.get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, url]() {
+        if (reply->error()) {
+            qDebug() << "Error downloading" << url.toString() << ":" << reply->errorString();
+        } else {
+            qDebug() << "Downloaded" << url.toString() << "successfully.";
+            // Guardar el archivo descargado en disco
+            QString filePath = downloadDirectory + "/" + url.fileName();
+            QFile file(filePath);
+            if (file.open(QIODevice::WriteOnly)) {
+                file.write(reply->readAll());
+                file.close();
+                qDebug() << "Saved" << url.fileName() << "to" << filePath;
+            } else {
+                qDebug() << "Failed to save" << url.fileName();
+            }
+        }
+        reply->deleteLater();
+    });
 }
 
 void Ventana::paintEvent(QPaintEvent *event)
 {
     QWidget::paintEvent(event);
+
     if (!image.isNull()) {
         QPainter painter(this);
-        painter.drawImage(10, 10, image); // Adjust the position as needed
+        painter.drawImage(0, 0, image, Qt::KeepAspectRatioByExpanding);
     }
 }

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLineEdit" name="urlLineEdit">
+      <property name="placeholderText">
+       <string>Enter URL</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextEdit" name="htmlTextEdit"/>
+    </item>
+   </layout>
+  </widget>
+  <action name="actionNew"/>
+  <action name="actionOpen"/>
+  <action name="actionSave"/>
+  <action name="actionSave_As"/>
+  <action name="actionExit"/>
+  <menu name="menuFile">
+   <property name="title">
+    <string>&amp;File</string>
+   </property>
+   <addaction name="actionNew"/>
+   <addaction name="actionOpen"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionSave_As"/>
+   <addaction name="actionExit"/>
+  </menu>
+  <menubar name="menuBar">
+   <addaction name="menuFile"/>
+  </menubar>
+  <statusbar name="statusBar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
